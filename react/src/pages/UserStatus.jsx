@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { API_URL } from '../config/api';
 
 const UserStatusPage = () => {
   const [bookings, setBookings] = useState([]);
@@ -14,7 +15,7 @@ const UserStatusPage = () => {
           return;
         }
 
-        const response = await fetch("http://localhost:3000/userstatus", {
+        const response = await fetch(`${API_URL}/userstatus`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         const result = await response.json();

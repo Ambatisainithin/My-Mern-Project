@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
+import { API_URL } from '../config/api';
 
 const BookingForm = () => {
   const navigate = useNavigate();
@@ -86,7 +87,7 @@ const BookingForm = () => {
     }
 
     try {
-      const response = await fetch("http://localhost:3000/createbooking", {
+      const response = await fetch(`${API_URL}/createbooking`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

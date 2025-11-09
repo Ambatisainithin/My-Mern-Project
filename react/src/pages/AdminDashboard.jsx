@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { FaCheckCircle, FaTimesCircle, FaClock, FaTools } from "react-icons/fa";
+import { API_URL } from '../config/api';
 
 const AdminDashboard = () => {
   const [bookings, setBookings] = useState([]);
@@ -12,7 +13,7 @@ const AdminDashboard = () => {
     const fetchBookings = async () => {
       try {
         const token = localStorage.getItem("token");
-        const response = await fetch("http://localhost:3000/bookingtoadmin", {
+        const response = await fetch(`${API_URL}/bookingtoadmin`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         const result = await response.json();
@@ -45,9 +46,13 @@ const AdminDashboard = () => {
       );
       setBookings(updatedBookings);
 
-      const response = await fetch(`http://localhost:3000/bookings/${id}/status`, {
+      const token = localStorage.getItem("token");
+      const response = await fetch(`${API_URL}/bookings/${id}/status`, {
         method: "PATCH",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
         body: JSON.stringify({ status, mechanic }),
       });
 
