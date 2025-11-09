@@ -5,13 +5,20 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const {verifyToken} = require('./middlewear');
 
-
+const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+const phoneRegex = /^\+?[0-9]{10,15}$/;
 
 exports.newuser = async (req, res) => {
   try {
     const { name, email, password, confirmpassword } = req.body;
     if (!name || !email || !password || !confirmpassword) {
       return res.status(403).json({ error: "Fill all fields" });
+    }
+    if (!emailRegex.test(email)) {
+      return res.status(400).json({ error: "Invalid email format" });
+    }
+    if (password.length < 8 || !/[0-9]/.test(password)) {
+      return res.status(400).json({ error: "Password must be at least 8 characters and include a number" });
     }
     const exist = await signupDetails.findOne({ email });
     if (exist) {
@@ -21,7 +28,7 @@ exports.newuser = async (req, res) => {
       return res.status(400).json({ error: "Passwords do not match" });
     }
     const hashedPassword = await bcrypt.hash(password, 10);
-    const newuser = new signupDetails({name,email,password:hashedPassword,confirmpassword:hashedPassword});
+    const newuser = new signupDetails({name: String(name).trim(),email,password:hashedPassword});
     await newuser.save();
     return res.status(201).json({
       message: "User created successfully",
@@ -41,6 +48,9 @@ exports.login = async (req, res) => {
     if (!email || !password) {
       return res.status(403).json({ message: "Fill all fields" });
     }
+    if (!emailRegex.test(email)) {
+      return res.status(400).json({ message: "Invalid email format" });
+    }
 
     const user = await signupDetails.findOne({ email });
     if (!user) {
@@ -51,11 +61,15 @@ exports.login = async (req, res) => {
     if (!PasswordMatch) {
       return res.status(401).json({ message: "Password incorrect" });
     }
-    const token = jwt.sign({ email: user.email, role: user.role }, "mysecretkey", { expiresIn: "1h"});
-    const isAdmin = email === "admin@gmail.com";
+    if (!process.env.JWT_SECRET) {
+      return res.status(500).json({ message: "Server misconfiguration" });
+    }
+    const adminEmails = (process.env.ADMIN_EMAILS || "").split(",").map((e) => e.trim().toLowerCase()).filter(Boolean);
+    const role = adminEmails.includes(user.email.toLowerCase()) ? "admin" : (user.role || "user");
+    const token = jwt.sign({ email: user.email, role }, process.env.JWT_SECRET, { expiresIn: "1h"});
     res.status(200).json({
       message: "Login successful",
-      role: isAdmin ? "admin" : "user",
+      role,
       token, 
       email: user.email, 
     });
@@ -67,7 +81,9 @@ exports.login = async (req, res) => {
 
 exports.createBooking = async (req, res) => {
   try {
-    console.log("Incoming booking request:", req.body);
+    if (process.env.NODE_ENV !== 'production') {
+      console.log("Incoming booking request:", req.body);
+    }
 
     const {
       FullName,
@@ -127,6 +143,13 @@ exports.createBooking = async (req, res) => {
       return res.status(400).json({ message: "Please fill all the required fields." });
     }
 
+    if (!emailRegex.test(email)) {
+      return res.status(400).json({ message: "Invalid email format" });
+    }
+    if (!phoneRegex.test(String(MobileNumber).trim())) {
+      return res.status(400).json({ message: "Invalid phone number" });
+    }
+
     const appointment = new Date(AppointmentDate);
     if (!appointment || isNaN(appointment.getTime())) {
       return res.status(400).json({ message: "Invalid appointment date." });
@@ -139,21 +162,38 @@ exports.createBooking = async (req, res) => {
     }
 
     const newBooking = await BookingSchema.create({
-      FullName,
-      email,
-      MobileNumber,
-      CarModel,
-      EngineType,
+      FullName: String(FullName).trim(),
+      email: String(email).toLowerCase().trim(),
+      MobileNumber: String(MobileNumber).trim(),
+      CarModel: String(CarModel).trim(),
+      EngineType: String(EngineType).trim(),
       SelectedServices: selected,
       ServiceType: selected.join(", "),
       Price: totalPrice,
-      VehicleNumber,
+      VehicleNumber: String(VehicleNumber).toUpperCase().trim(),
       AppointmentDate: appointment,
-      AdditionalRequirements: AdditionalRequirements || "",
+      AdditionalRequirements: (AdditionalRequirements || "").toString().trim(),
       Status: "pending",
     });
 
-    console.log("Booking created successfully:", newBooking._id);
+    if (process.env.NODE_ENV !== 'production') {
+      console.log("Booking created successfully:", newBooking._id);
+    }
+
+    // Send confirmation email
+    try {
+      await sendConfirmationEmail(
+        newBooking.email,
+        newBooking.FullName,
+        newBooking.ServiceType,
+        newBooking.AppointmentDate.toDateString(),
+        "pending",
+        { basePrice: base, gst, serviceTax, finalAmount: totalPrice }
+      );
+    } catch (emailErr) {
+      console.error('Failed to send booking confirmation email:', emailErr.message);
+    }
+
     res.status(201).json({ message: "Booking created", booking: newBooking });
   } catch (err) {
     console.error("Booking creation error:", err.message, err.stack);
@@ -212,14 +252,18 @@ exports.updateBookingStatus = async (req, res) => {
       const serviceTax = +(base * 0.05).toFixed(2);
       const finalAmount = +(base + gst + serviceTax).toFixed(2);
 
-      await sendConfirmationEmail(
-        updatedBooking.email,
-        updatedBooking.FullName,
-        updatedBooking.ServiceType,
-        updatedBooking.AppointmentDate.toDateString(),
-        status,
-        { basePrice: base, gst, serviceTax, finalAmount }
-      );
+      try {
+        await sendConfirmationEmail(
+          updatedBooking.email,
+          updatedBooking.FullName,
+          updatedBooking.ServiceType,
+          updatedBooking.AppointmentDate.toDateString(),
+          status,
+          { basePrice: base, gst, serviceTax, finalAmount }
+        );
+      } catch (e) {
+        console.error('Email send failed:', e.message);
+      }
     }
 
     res.status(200).json({ message: "Status updated", booking: updatedBooking });
@@ -243,24 +287,3 @@ exports.getUserBookingStatus = async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
