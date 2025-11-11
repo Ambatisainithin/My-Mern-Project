@@ -23,8 +23,22 @@ app.disable("x-powered-by");
 app.use(helmet());
 app.use(e.json());
 
+// CORS: support multiple origins and trim accidental spaces in .env
+const originEnv = (process.env.CLIENT_ORIGIN || "").trim();
+const fromEnv = originEnv ? originEnv.split(/\|\||,/).map((s) => s.trim()).filter(Boolean) : [];
+// Always include common local dev origins, even when CLIENT_ORIGIN is set
+const devOrigins = ["http://localhost:5173", "http://localhost:3000", "http://127.0.0.1:5173", "http://127.0.0.1:3000"];
+const allowedOrigins = Array.from(new Set([...(process.env.NODE_ENV === 'production' ? [] : devOrigins), ...fromEnv]));
+
+console.log("Allowed origins:", allowedOrigins);
+
 const corsOptions = {
-  origin: process.env.CLIENT_ORIGIN || "*",
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+    return callback(new Error(`Not allowed by CORS: ${origin}`));
+  },
   methods: ["GET", "POST", "PATCH", "DELETE", "OPTIONS"],
   credentials: true,
 };
