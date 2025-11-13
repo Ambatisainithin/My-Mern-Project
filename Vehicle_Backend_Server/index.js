@@ -35,6 +35,9 @@ app.get("/bookingtoadmin", verifyToken, bookingtoadmin);
 
 app.patch("/bookings/:id/status", updateBookingStatus);
 app.get("/userstatus", verifyToken, getUserBookingStatus);
+app.get("/", (req, res) => {
+  res.send("Server running successfully");
+});
 
 app.listen(3000, () => {
   console.log("server running on http://localhost:3000");
