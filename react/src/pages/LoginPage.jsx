@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import { toast } from "react-toastify";
 import { Link, useNavigate } from "react-router-dom";
-import { API_URL } from '../config/api';
 
 function LoginPage({ setLoggedIn }) {
   const [data, setData] = useState({ email: "", password: "" });
@@ -14,7 +13,7 @@ function LoginPage({ setLoggedIn }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await fetch(`${API_URL}/login`, {
+      const response = await fetch("http://localhost:3000/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
@@ -31,7 +30,7 @@ function LoginPage({ setLoggedIn }) {
         if (result.role === "admin") {
           navigate("/toadmin");
         } else {
-          const statusRes = await fetch(`${API_URL}/userstatus`, {
+          const statusRes = await fetch("http://localhost:3000/userstatus", {
             headers: { Authorization: `Bearer ${result.token}` },
           });
           const bookings = await statusRes.json();

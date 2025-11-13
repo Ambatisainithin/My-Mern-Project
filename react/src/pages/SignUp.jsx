@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import Swal from 'sweetalert2';
 import { Link,useNavigate } from "react-router-dom";
-import { API_URL } from '../config/api';
 
 const SignUp = () => {
   const [data, setData] = useState({ name: "",email: "", password: "" ,confirmpassword:""});
@@ -25,7 +24,7 @@ const SignUp = () => {
 }
 
       try {
-        const response = await fetch(`${API_URL}/newuser`, {method: "POST",headers: { "Content-Type": "application/json" },
+        const response = await fetch("http://localhost:3000/newuser", {method: "POST",headers: { "Content-Type": "application/json" },
           body: JSON.stringify(data)
         });
 
