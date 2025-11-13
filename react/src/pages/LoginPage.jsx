@@ -13,11 +13,14 @@ function LoginPage({ setLoggedIn }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await fetch("http://localhost:3000/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
-      });
+      const response = await fetch(
+        "https://vehiclebookingbackend.vercel.app/login",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(data),
+        }
+      );
       const result = await response.json();
 
       if (response.ok) {
@@ -57,7 +60,10 @@ function LoginPage({ setLoggedIn }) {
     <div
       className="min-h-screen bg-cover bg-center bg-no-repeat flex items-center justify-center relative"
       style={{
-        backgroundImage:'url("https://img.freepik.com/premium-photo/auto-repair-maintenance-garage-render-3d_10221-16070.jpg")'}}>
+        backgroundImage:
+          'url("https://img.freepik.com/premium-photo/auto-repair-maintenance-garage-render-3d_10221-16070.jpg")',
+      }}
+    >
       <div className="absolute inset-0 bg-black/40"></div>
 
       <div className="relative z-10 w-full max-w-md bg-white/90 backdrop-blur-md rounded-2xl shadow-2xl p-8 transition-transform hover:scale-[1.02]">
@@ -72,7 +78,9 @@ function LoginPage({ setLoggedIn }) {
 
         <form onSubmit={handleSubmit} className="space-y-5">
           <div>
-            <label className="block text-gray-700 mb-1 font-medium">Email</label>
+            <label className="block text-gray-700 mb-1 font-medium">
+              Email
+            </label>
             <input
               name="email"
               type="email"
@@ -85,7 +93,9 @@ function LoginPage({ setLoggedIn }) {
           </div>
 
           <div>
-            <label className="block text-gray-700 mb-1 font-medium">Password</label>
+            <label className="block text-gray-700 mb-1 font-medium">
+              Password
+            </label>
             <input
               name="password"
               type="password"
@@ -107,7 +117,10 @@ function LoginPage({ setLoggedIn }) {
 
         <p className="text-center text-gray-700 text-sm mt-6">
           Don’t have an account?{" "}
-          <Link to="/SignUp" className="text-blue-600 font-medium hover:underline">
+          <Link
+            to="/SignUp"
+            className="text-blue-600 font-medium hover:underline"
+          >
             Sign up
           </Link>
         </p>
