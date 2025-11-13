@@ -30,9 +30,12 @@ function LoginPage({ setLoggedIn }) {
         if (result.role === "admin") {
           navigate("/toadmin");
         } else {
-          const statusRes = await fetch("http://localhost:3000/userstatus", {
-            headers: { Authorization: `Bearer ${result.token}` },
-          });
+          const statusRes = await fetch(
+            "https://vehiclebookingbackend.vercel.app/userstatus",
+            {
+              headers: { Authorization: `Bearer ${result.token}` },
+            }
+          );
           const bookings = await statusRes.json();
 
           if (Array.isArray(bookings) && bookings.length > 0) {

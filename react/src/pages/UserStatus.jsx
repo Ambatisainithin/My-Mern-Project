@@ -14,9 +14,12 @@ const UserStatusPage = () => {
           return;
         }
 
-        const response = await fetch("http://localhost:3000/userstatus", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        const response = await fetch(
+          "https://vehiclebookingbackend.vercel.app/userstatus",
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
         const result = await response.json();
 
         if (response.ok) {

@@ -24,9 +24,14 @@ const SignUp = () => {
 }
 
       try {
-        const response = await fetch("http://localhost:3000/newuser", {method: "POST",headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(data)
-        });
+        const response = await fetch(
+          "https://vehiclebookingbackend.vercel.app/newuser",
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(data),
+          }
+        );
 
         const result = await response.json();
         if (response.ok) {

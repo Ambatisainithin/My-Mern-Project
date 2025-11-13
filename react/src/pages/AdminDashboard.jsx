@@ -12,9 +12,12 @@ const AdminDashboard = () => {
     const fetchBookings = async () => {
       try {
         const token = localStorage.getItem("token");
-        const response = await fetch("http://localhost:3000/bookingtoadmin", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        const response = await fetch(
+          "https://vehiclebookingbackend.vercel.app/bookingtoadmin",
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
         const result = await response.json();
 
         if (response.ok) {

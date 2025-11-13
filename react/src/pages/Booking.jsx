@@ -86,26 +86,29 @@ const BookingForm = () => {
     }
 
     try {
-      const response = await fetch("http://localhost:3000/createbooking", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-        body: JSON.stringify({
-          FullName: formData.name,
-          email: userEmail,
-          MobileNumber: formData.number,
-          CarModel: formData.carModel,
-          EngineType: formData.engineType,
-          SelectedServices: formData.selectedServices,
-          ServiceType: "Vehicle Service",
-          Price: finalAmount,
-          VehicleNumber: formData.vehicleNumber,
-          AppointmentDate: formData.date,
-          AdditionalRequirements: formData.notes,
-        }),
-      });
+      const response = await fetch(
+        "https://vehiclebookingbackend.vercel.app/createbooking",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+          body: JSON.stringify({
+            FullName: formData.name,
+            email: userEmail,
+            MobileNumber: formData.number,
+            CarModel: formData.carModel,
+            EngineType: formData.engineType,
+            SelectedServices: formData.selectedServices,
+            ServiceType: "Vehicle Service",
+            Price: finalAmount,
+            VehicleNumber: formData.vehicleNumber,
+            AppointmentDate: formData.date,
+            AdditionalRequirements: formData.notes,
+          }),
+        }
+      );
 
       const result = await response.json();
 
