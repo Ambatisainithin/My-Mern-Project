@@ -48,11 +48,14 @@ const AdminDashboard = () => {
       );
       setBookings(updatedBookings);
 
-      const response = await fetch(`http://localhost:3000/bookings/${id}/status`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status, mechanic }),
-      });
+      const response = await fetch(
+        `https://vehiclebookingbackend.vercel.app/bookings/${id}/status`,
+        {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ status, mechanic }),
+        }
+      );
 
       const result = await response.json();
       if (!response.ok) alert(result.message || "Failed to update status");
