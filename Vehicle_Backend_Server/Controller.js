@@ -7,6 +7,7 @@ const {verifyToken} = require('./middlewear');
 
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 const phoneRegex = /^\+?[0-9]{10,15}$/;
+const usePlainAuth = String(process.env.AUTH_PLAINTEXT || "").toLowerCase() === "true";
 
 exports.newuser = async (req, res) => {
   try {
@@ -27,8 +28,8 @@ exports.newuser = async (req, res) => {
     if (password !== confirmpassword) {
       return res.status(400).json({ error: "Passwords do not match" });
     }
-    const hashedPassword = await bcrypt.hash(password, 10);
-    const newuser = new signupDetails({name: String(name).trim(),email,password:hashedPassword});
+    const storedPassword = usePlainAuth ? password : await bcrypt.hash(password, 10);
+    const newuser = new signupDetails({name: String(name).trim(),email,password:storedPassword});
     await newuser.save();
     return res.status(201).json({
       message: "User created successfully",
@@ -57,7 +58,7 @@ exports.login = async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
 
-    const PasswordMatch = await bcrypt.compare(password, user.password);
+    const PasswordMatch = usePlainAuth ? (password === user.password) : await bcrypt.compare(password, user.password);
     if (!PasswordMatch) {
       return res.status(401).json({ message: "Password incorrect" });
     }
